@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- CONSOLE -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                [%-5level][%thread] %d{yyyy-MM-dd HH:mm:ss.SSS} : %30logger{5} - %msg%n
+            </Pattern>
+        </layout>
+    </appender>
+    <!-- // CONSOLE -->
+
+    <root level="info">
+        <appender-ref ref="CONSOLE" />
+    </root>
+    <logger name="org.hibernate.SQL" level="info" additivity="false">
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    <logger name="org.hibernate.type.descriptor.sql" level="trace" additivity="false">
+        <appender-ref ref="CONSOLE" />
+    </logger>
+    <logger name="com.kickalert.app" level="debug" additivity="false">
+        <appender-ref ref="CONSOLE" />
+    </logger>
+</configuration>

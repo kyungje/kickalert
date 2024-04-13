@@ -1,0 +1,11 @@
+package com.kickalert.app.repository.custom;
+
+import com.kickalert.app.dto.internal.PlayerInDto;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+
+public interface PlayerRepositoryCustom {
+    Slice<PlayerInDto.ResFollowIngPlayerInfo> followingPlayerList(Long memberId, Pageable pageable);
+
+    Slice<PlayerInDto.ResSearchPlayerInfo> searchPlayerList(Long memberId, String searchKeyword, Pageable pageable);
+}
