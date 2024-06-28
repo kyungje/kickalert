@@ -27,9 +27,15 @@ public class AlarmController extends BaseController {
     public ResultExDto<Object> alarmSetting(@RequestBody AlarmExDto.ReqAlarmSetting reqAlarmSetting) {
         AlarmInDto.ReqAlarmSetting inReqAlarmSetting
                 = new AlarmInDto.ReqAlarmSetting(reqAlarmSetting.userId()
-                                        , reqAlarmSetting.playerId()
                                         , reqAlarmSetting.fixtureId()
+                                        , reqAlarmSetting.playerId()
                                         , reqAlarmSetting.alarmType());
         return simpleResult(alarmService.alarmSetting(inReqAlarmSetting));
+    }
+
+    @GetMapping(value = "/activeAlarmList")
+    public ResultExDto<Object> activeAlarmList(@RequestParam String userId, Pageable pageable) {
+        if(CommonUtils.isEmpty(userId)) simpleResult("");
+        return simpleResult(alarmService.activeAlarmList(Long.parseLong(userId), pageable));
     }
 }

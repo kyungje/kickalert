@@ -9,7 +9,7 @@ spring:
   datasource:
    url: jdbc:mysql://34.64.92.3:3306/kickalert
    username: admin
-   password: admin
+   password: P@ssword123!@#
    driver-class-name: com.mysql.cj.jdbc.Driver
 
 #  datasource:
@@ -39,3 +39,6 @@ server:
 # logging 설정
 logging:
   config: classpath:logback/logback-${spring.profiles.active}.xml
+
+
+#foot_ball_api_token: 04Cn60k0vqix4U9O59V8FpFpwJl0xOOlSmhX9D8tnHW920QLabmkYhWFz4Qu

@@ -31,9 +31,9 @@ public class FixtureController extends BaseController{
     }
 
     @GetMapping(value = "/matchPlayerList")
-    public ResultExDto<Object> fixturePlayerList(@RequestParam String fixtureId) {
+    public ResultExDto<Object> fixturePlayerList(@RequestParam String fixtureId,@RequestParam String userId ) {
         if(CommonUtils.isEmpty(fixtureId)) simpleResult("");
-        return simpleResult(fixtureService.fixturePlayerList(Long.parseLong(fixtureId)));
+        return simpleResult(fixtureService.fixturePlayerList(Long.parseLong(fixtureId), Long.parseLong(userId)));
     }
 
 }

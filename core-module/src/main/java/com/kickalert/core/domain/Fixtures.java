@@ -3,6 +3,7 @@ package com.kickalert.core.domain;
 import com.kickalert.core.domain.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -27,22 +28,30 @@ public class Fixtures extends BaseEntity {
     @Column(name = "venue")
     private String venue;
 
+    @Column(name = "api_id")
+    private Integer apiId;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "home_team_id")
+    @JoinColumn(name = "home_team_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Teams homeTeam;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "away_team_id")
+    @JoinColumn(name = "away_team_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Teams awayTeam;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "league_id")
+    @JoinColumn(name = "league_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Leagues leagues;
 
-    @Column(name = "home_team_lineup", length = 3000)
-    private String homeTeamLineup;
-
-    @Column(name = "away_team_lineup", length = 3000)
-    private String awayTeamLineup;
-
+    @Builder
+    public Fixtures(Long id, String timezone, LocalDateTime datetime, String venue, Integer apiId, Teams homeTeam, Teams awayTeam, Leagues leagues) {
+        this.id = id;
+        this.timezone = timezone;
+        this.datetime = datetime;
+        this.venue = venue;
+        this.apiId = apiId;
+        this.homeTeam = homeTeam;
+        this.awayTeam = awayTeam;
+        this.leagues = leagues;
+    }
 }

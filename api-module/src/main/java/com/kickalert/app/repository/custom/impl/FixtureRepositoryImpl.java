@@ -3,7 +3,9 @@ package com.kickalert.app.repository.custom.impl;
 import com.kickalert.app.dto.internal.FixtureInDto;
 import com.kickalert.app.repository.custom.FixtureRepositoryCustom;
 import com.kickalert.app.util.RepositorySliceHelper;
+import com.kickalert.core.customEnum.DeleteYn;
 import com.kickalert.core.domain.QTeams;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
@@ -12,6 +14,9 @@ import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 
 import static com.kickalert.core.domain.QFixtures.fixtures;
@@ -62,7 +67,8 @@ public class FixtureRepositoryImpl implements FixtureRepositoryCustom {
                         JPAExpressions
                                 .select(playerFollowing.player.id)
                                 .from(playerFollowing)
-                                .where(playerFollowing.member.id.eq(1L))
+                                .where(playerFollowing.member.id.eq(memberId)
+                                        .and(playerFollowing.deleteYn.eq(DeleteYn.N)))
                 ))
                 .fetch();
 
@@ -81,7 +87,8 @@ public class FixtureRepositoryImpl implements FixtureRepositoryCustom {
                         leagues.leagueName.as("leagueName")))
                 .from(fixtures)
                 .where(fixtures.homeTeam.id.in(teamIds)
-                        .or(fixtures.awayTeam.id.in(teamIds)))
+                        .or(fixtures.awayTeam.id.in(teamIds))
+                        .and(fixtures.datetime.after(ZonedDateTime.now().toLocalDateTime())))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();

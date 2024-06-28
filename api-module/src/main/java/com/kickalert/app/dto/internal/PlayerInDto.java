@@ -10,8 +10,6 @@ public class PlayerInDto {
             Long teamId,
             String teamName,
             String teamLogo,
-            Long leagueId,
-            String leagueName,
             Long countryId,
             String country,
             String countryLogo,
@@ -22,6 +20,14 @@ public class PlayerInDto {
             Long playerId,
             String playerName,
             String playerPhotoUrl,
+            String followYn
+    ) {}
+
+    public record ResMatchPlayerInfo(
+            Long playerId,
+            String playerName,
+            String playerPhotoUrl,
+            String alarmType,
             String followYn
     ) {}
 }

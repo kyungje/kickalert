@@ -8,12 +8,12 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-//@DataJpaTest
+@DataJpaTest
 class PlayerRepositoryTest {
-//    @Autowired
-//    private TestEntityManager testEntityManager;
-//    @Autowired
-//    private PlayerRepository playerRepository;
+    @Autowired
+    private TestEntityManager testEntityManager;
+    @Autowired
+    private PlayerRepository playerRepository;
 
 //    @Test
 //    void insertPlayer() {
@@ -27,4 +27,9 @@ class PlayerRepositoryTest {
 //
 //        testEntityManager.persist(player);
 //    }
+
+    @Test
+    void matchPlayerList() {
+        playerRepository.matchPlayerList(1L, 1L, 1L);
+    }
 }

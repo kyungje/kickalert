@@ -24,19 +24,23 @@ public class Players extends BaseEntity {
     private String playerName;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "team_id")
+    @JoinColumn(name = "team_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Teams team;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "country_id")
+    @JoinColumn(name = "country_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Countries country;
 
+    @Column(name = "api_id")
+    private Integer apiId;
+
     @Builder
-    public Players(Long id, String playerPhotoUrl, String playerName, Teams team, Countries country) {
+    public Players(Long id, String playerPhotoUrl, String playerName, Teams team, Countries country, Integer apiId) {
         this.id = id;
         this.playerPhotoUrl = playerPhotoUrl;
         this.playerName = playerName;
         this.team = team;
         this.country = country;
+        this.apiId = apiId;
     }
 }

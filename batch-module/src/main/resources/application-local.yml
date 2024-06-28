@@ -7,16 +7,20 @@ spring:
     basename: messages/messages
     encoding: UTF-8
   datasource:
-   url: jdbc:mysql://34.64.92.3:3306/kickalert
-   username: admin
-   password: P@ssword123!@#
-   driver-class-name: com.mysql.cj.jdbc.Driver
-
-#  datasource:
-#    url: jdbc:mysql://libl-aurora-mysql8-db-dev.cluster-cshrhqgio6er.ap-northeast-2.rds.amazonaws.com/libl
-#    username: admin
-#    password: Libl!23$0
-#    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://34.64.92.3:3306/kickalert
+    username: admin
+    password: P@ssword123!@#
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  batch:
+    jdbc:
+      initialize-schema: never
+    job:
+      enabled: true
+  #  datasource:
+  #    url: jdbc:mysql://libl-aurora-mysql8-db-dev.cluster-cshrhqgio6er.ap-northeast-2.rds.amazonaws.com/libl
+  #    username: admin
+  #    password: Libl!23$0
+  #    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
@@ -40,4 +44,5 @@ server:
 logging:
   config: classpath:logback/logback-${spring.profiles.active}.xml
 
-#foot_ball_api_token: 04Cn60k0vqix4U9O59V8FpFpwJl0xOOlSmhX9D8tnHW920QLabmkYhWFz4Qu
+football:
+  api-token: 04Cn60k0vqix4U9O59V8FpFpwJl0xOOlSmhX9D8tnHW920QLabmkYhWFz4Qu

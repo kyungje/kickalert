@@ -16,6 +16,7 @@ import org.springframework.data.domain.Slice;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.kickalert.core.domain.QAlarmHistory.alarmHistory;
 import static com.kickalert.core.domain.QCountries.countries;
 import static com.kickalert.core.domain.QFixtures.fixtures;
 import static com.kickalert.core.domain.QLeagues.leagues;
@@ -40,8 +41,6 @@ public class PlayerRepositoryImpl implements PlayerRepositoryCustom {
                         teams.id.as("teamId"),
                         teams.teamName,
                         teams.teamLogo,
-                        teams.id.as("leagueId"),
-                        ExpressionUtils.as(JPAExpressions.select(leagues.leagueName).from(leagues).where(teams.league.id.eq(leagues.id)),"leagueName"),
                         countries.id.as("countryId"),
                         countries.countryName.as("country"),
                         countries.countryLogo,
@@ -77,7 +76,7 @@ public class PlayerRepositoryImpl implements PlayerRepositoryCustom {
                         ExpressionUtils.as(new CaseBuilder()
                                 .when(JPAExpressions.selectOne()
                                         .from(playerFollowing)
-                                        .where(playerFollowing.id.eq(players.id)
+                                        .where(playerFollowing.player.eq(players)
                                                 .and(playerFollowing.member.id.eq(memberId))
                                                 .and(playerFollowing.deleteYn.eq(DeleteYn.N)))
                                         .exists())
@@ -90,5 +89,34 @@ public class PlayerRepositoryImpl implements PlayerRepositoryCustom {
                 .fetch();
 
         return RepositorySliceHelper.toSlice(content, pageable);
+    }
+
+
+    public List<PlayerInDto.ResMatchPlayerInfo> matchPlayerList(Long teamId, Long memberId, Long fixtureId){
+        List<PlayerInDto.ResMatchPlayerInfo> content = queryFactory
+                .select(Projections.constructor(
+                        PlayerInDto.ResMatchPlayerInfo.class,
+                        players.id.as("playerId"),
+                        players.playerName,
+                        players.playerPhotoUrl,
+                        ExpressionUtils.as(JPAExpressions.select(alarmHistory.alarmType).from(alarmHistory)
+                                .where(players.eq(alarmHistory.player)
+                                        .and(alarmHistory.member.id.eq(memberId))
+                                        .and(alarmHistory.fixture.id.eq(fixtureId))),"alarmType"),
+                        ExpressionUtils.as(new CaseBuilder()
+                                .when(JPAExpressions.selectOne()
+                                        .from(playerFollowing)
+                                        .where(playerFollowing.player.eq(players)
+                                                .and(playerFollowing.member.id.eq(memberId))
+                                                .and(playerFollowing.deleteYn.eq(DeleteYn.N)))
+                                        .exists())
+                                .then("Y")
+                                .otherwise("N"),"flowYn"))
+                ).from(teams)
+                .join(players).on(teams.id.eq(players.team.id))
+                .where(teams.id.eq(teamId))
+                .fetch();
+
+        return content;
     }
 }

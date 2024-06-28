@@ -1,5 +1,6 @@
 package com.kickalert.core.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -7,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class CommonUtils {
     private static final String FILE_EXTENSION_SEPARATOR = ".";
     private static final String CATEGORY_PREFIX = "/";
@@ -54,5 +56,12 @@ public class CommonUtils {
         }
 
         return ranPw;
+    }
+
+    public static LocalDateTime convertStringToLocalDateTime(String dateTimeStr) {
+        log.info("dateTime : {}", dateTimeStr);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return LocalDateTime.parse(dateTimeStr, formatter);
     }
 }

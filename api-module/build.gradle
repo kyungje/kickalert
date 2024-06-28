@@ -22,6 +22,8 @@ dependencies {
 
     //spring web
     implementation 'org.springframework.boot:spring-boot-starter-web'
+//    // webflux 추가
+//    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 bootJar.enabled = true

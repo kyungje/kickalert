@@ -21,23 +21,23 @@ public class AlarmHistory extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Members member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "player_id")
+    @JoinColumn(name = "player_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Players player;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "home_team_id")
+    @JoinColumn(name = "home_team_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Teams homeTeam;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "away_team_id")
+    @JoinColumn(name = "away_team_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Teams awayTeam;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fixture_id")
+    @JoinColumn(name = "fixture_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Fixtures fixture;
 
     @Column(name = "alarm_type")

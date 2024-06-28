@@ -3,6 +3,7 @@ package com.kickalert.core.domain;
 import com.kickalert.core.domain.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -22,7 +23,19 @@ public class Teams extends BaseEntity {
     @Column(name = "team_logo")
     private String teamLogo;
 
+    @Column(name = "api_id")
+    private Integer apiId;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "league_id")
-    private Leagues league;
+    @JoinColumn(name = "country_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private Countries country;
+
+    @Builder
+    public Teams(Long id, String teamName, String teamLogo, Integer apiId, Countries country) {
+        this.id = id;
+        this.teamName = teamName;
+        this.teamLogo = teamLogo;
+        this.apiId = apiId;
+        this.country = country;
+    }
 }
