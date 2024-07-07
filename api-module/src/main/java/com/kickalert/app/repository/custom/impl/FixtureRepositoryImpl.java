@@ -1,11 +1,12 @@
 package com.kickalert.app.repository.custom.impl;
 
+import com.kickalert.app.dto.internal.AlarmInDto;
 import com.kickalert.app.dto.internal.FixtureInDto;
 import com.kickalert.app.repository.custom.FixtureRepositoryCustom;
 import com.kickalert.app.util.RepositorySliceHelper;
 import com.kickalert.core.customEnum.DeleteYn;
 import com.kickalert.core.domain.QTeams;
-import com.querydsl.core.types.Expression;
+import com.kickalert.core.util.CommonUtils;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPAExpressions;
@@ -14,16 +15,15 @@ import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.List;
 
+import static com.kickalert.core.domain.QAlarmHistory.alarmHistory;
 import static com.kickalert.core.domain.QFixtures.fixtures;
 import static com.kickalert.core.domain.QLeagues.leagues;
 import static com.kickalert.core.domain.QPlayerFollowing.playerFollowing;
-import static com.kickalert.core.domain.QTeams.teams;
 import static com.kickalert.core.domain.QPlayers.players;
+import static com.kickalert.core.domain.QTeams.teams;
 
 public class FixtureRepositoryImpl implements FixtureRepositoryCustom {
     private final JPAQueryFactory queryFactory;
@@ -62,7 +62,7 @@ public class FixtureRepositoryImpl implements FixtureRepositoryCustom {
                 .select(teams.id)
                 .from(teams)
                 .join(players)
-                .on(teams.id.eq(players.id))
+                .on(teams.eq(players.team))
                 .where(players.id.in(
                         JPAExpressions
                                 .select(playerFollowing.player.id)
@@ -73,14 +73,14 @@ public class FixtureRepositoryImpl implements FixtureRepositoryCustom {
                 .fetch();
 
         List<FixtureInDto.ResFixtureInfo> content = queryFactory
-                .select(Projections.constructor(
+                .select(Projections.fields(
                         FixtureInDto.ResFixtureInfo.class,
                         fixtures.id.as("fixtureId"),
                         fixtures.homeTeam.id.as("homeTeamId"),
                         fixtures.awayTeam.id.as("awayTeamId"),
                         ExpressionUtils.as(JPAExpressions.select(teams.teamName).from(teams).where(teams.id.eq(fixtures.homeTeam.id)),"homeTeamName"),
                         ExpressionUtils.as(JPAExpressions.select(teams.teamName).from(teams).where(teams.id.eq(fixtures.awayTeam.id)),"awayTeamName"),
-                        fixtures.datetime.as("matchDateTime"),
+                        fixtures.datetime.as("matchDateTimeOriginal"),
                         ExpressionUtils.as(JPAExpressions.select(teams.teamLogo).from(teams).where(teams.id.eq(fixtures.homeTeam.id)),"homeTeamLogo"),
                         ExpressionUtils.as(JPAExpressions.select(teams.teamLogo).from(teams).where(teams.id.eq(fixtures.awayTeam.id)),"awayTeamLogo"),
                         leagues.id.as("leagueId"),
@@ -89,11 +89,34 @@ public class FixtureRepositoryImpl implements FixtureRepositoryCustom {
                 .where(fixtures.homeTeam.id.in(teamIds)
                         .or(fixtures.awayTeam.id.in(teamIds))
                         .and(fixtures.datetime.after(ZonedDateTime.now().toLocalDateTime())))
+                .orderBy(fixtures.datetime.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
 
+        content.forEach(fixtureInfo -> {
+            List<AlarmInDto.AlarmPlayerInfo> alarmPlayers = playerList(memberId, fixtureInfo.getFixtureId());
+            fixtureInfo.setAlarmPlayers(alarmPlayers);
+            fixtureInfo.setMatchDateTime(CommonUtils.toUTCStringFromDateTime(fixtureInfo.getMatchDateTimeOriginal()));
+        });
+
         return RepositorySliceHelper.toSlice(content, pageable);
+    }
+
+    List<AlarmInDto.AlarmPlayerInfo> playerList(Long memberId, Long fixtureId){
+        return queryFactory
+                .select(Projections.constructor(AlarmInDto.AlarmPlayerInfo.class,
+                        players.id.as("playerId"),
+                        players.playerName,
+                        players.playerPhotoUrl,
+                        alarmHistory.alarmType
+                ))
+                .from(alarmHistory)
+                .join(alarmHistory.player, players).on(alarmHistory.player.id.eq(players.id))
+                .where(alarmHistory.member.id.eq(memberId)
+                        .and(alarmHistory.fixture.id.eq(fixtureId)
+                        ))
+                .fetch();
     }
 
 }

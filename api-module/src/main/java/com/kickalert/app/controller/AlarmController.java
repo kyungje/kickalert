@@ -38,4 +38,9 @@ public class AlarmController extends BaseController {
         if(CommonUtils.isEmpty(userId)) simpleResult("");
         return simpleResult(alarmService.activeAlarmList(Long.parseLong(userId), pageable));
     }
+
+    @PostMapping(value = "/alarmTest")
+    public ResultExDto<Object> alarmTest() {
+        return simpleResult(alarmService.alarmTest());
+    }
 }

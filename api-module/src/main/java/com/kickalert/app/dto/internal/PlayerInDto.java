@@ -1,20 +1,26 @@
 package com.kickalert.app.dto.internal;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 public class PlayerInDto {
-    public record ResFollowIngPlayerInfo(
-            String playerPhotoUrl,
-            String playerName,
-            Long playerId,
-            Long teamId,
-            String teamName,
-            String teamLogo,
-            Long countryId,
-            String country,
-            String countryLogo,
-            LocalDateTime nextMatchDateTime
-    ) {}
+    @Getter
+    @Setter
+    public static class ResFollowIngPlayerInfo{
+        private String playerPhotoUrl;
+        private String playerName;
+        private Long playerId;
+        private Long teamId;
+        private String teamName;
+        private String teamLogo;
+        private Long countryId;
+        private String country;
+        private String countryLogo;
+        private LocalDateTime nextMatchDateTimeOriginal;
+        private String nextMatchDateTime;
+    }
 
     public record ResSearchPlayerInfo(
             Long playerId,

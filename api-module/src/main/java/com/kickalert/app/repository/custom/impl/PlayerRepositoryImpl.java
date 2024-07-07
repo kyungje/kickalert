@@ -4,6 +4,7 @@ import com.kickalert.app.dto.internal.PlayerInDto;
 import com.kickalert.app.repository.custom.PlayerRepositoryCustom;
 import com.kickalert.app.util.RepositorySliceHelper;
 import com.kickalert.core.customEnum.DeleteYn;
+import com.kickalert.core.util.CommonUtils;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -19,7 +20,6 @@ import java.util.List;
 import static com.kickalert.core.domain.QAlarmHistory.alarmHistory;
 import static com.kickalert.core.domain.QCountries.countries;
 import static com.kickalert.core.domain.QFixtures.fixtures;
-import static com.kickalert.core.domain.QLeagues.leagues;
 import static com.kickalert.core.domain.QPlayerFollowing.playerFollowing;
 import static com.kickalert.core.domain.QPlayers.players;
 import static com.kickalert.core.domain.QTeams.teams;
@@ -33,7 +33,7 @@ public class PlayerRepositoryImpl implements PlayerRepositoryCustom {
 
     public Slice<PlayerInDto.ResFollowIngPlayerInfo> followingPlayerList(Long memberId , Pageable pageable){
         List<PlayerInDto.ResFollowIngPlayerInfo> content = queryFactory
-                .select(Projections.constructor(
+                .select(Projections.fields(
                         PlayerInDto.ResFollowIngPlayerInfo.class,
                         players.playerPhotoUrl,
                         players.playerName,
@@ -50,7 +50,7 @@ public class PlayerRepositoryImpl implements PlayerRepositoryCustom {
                                         .or(fixtures.awayTeam.id.eq(teams.id)))
                                 .where(fixtures.datetime.after(LocalDateTime.now()))
                                 .orderBy(fixtures.datetime.asc())
-                                .limit(1),"nextMatchDateTime"))
+                                .limit(1),"nextMatchDateTimeOriginal"))
                 ).from(teams)
                 .join(players).on(teams.id.eq(players.team.id))
                 .join(countries).on(players.country.id.eq(countries.id))
@@ -59,9 +59,14 @@ public class PlayerRepositoryImpl implements PlayerRepositoryCustom {
                                 .from(playerFollowing)
                                 .where(playerFollowing.member.id.eq(memberId)
                                         .and(playerFollowing.deleteYn.eq(DeleteYn.N)))))
+                .orderBy(players.playerName.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
+
+        content.forEach(playerInfo -> {
+            playerInfo.setNextMatchDateTime(CommonUtils.toUTCStringFromDateTime(playerInfo.getNextMatchDateTimeOriginal()));
+        });
 
         return RepositorySliceHelper.toSlice(content, pageable);
     }
@@ -84,6 +89,7 @@ public class PlayerRepositoryImpl implements PlayerRepositoryCustom {
                                 .otherwise("N"),"flowYn")))
                 .from(players)
                 .where(players.playerName.contains(searchKeyword))
+                .orderBy(players.playerName.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();

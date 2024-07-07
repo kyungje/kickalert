@@ -6,4 +6,6 @@ import org.springframework.data.domain.Slice;
 
 public interface AlarmHistoryRepositoryCustom {
     Slice<AlarmInDto.ResAlarmHistoryInfo> alarmHistoryList(Long memberId, Pageable pageable);
+
+    Slice<AlarmInDto.ResActiveAlarmInfo> activeAlarmList(Long memberId, Pageable pageable);
 }
