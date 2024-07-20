@@ -43,4 +43,9 @@ public class AlarmController extends BaseController {
     public ResultExDto<Object> alarmTest() {
         return simpleResult(alarmService.alarmTest());
     }
+
+    @PostMapping(value = "/alarmMultiTest")
+    public ResultExDto<Object> alarmMultiTest() {
+        return simpleResult(alarmService.multiAlarmTest());
+    }
 }

@@ -68,6 +68,7 @@ public class AlarmHistoryRepositoryImpl implements AlarmHistoryRepositoryCustom 
                         ))
                 .from(alarmHistory)
                 .where(alarmHistory.member.id.eq(memberId)
+                        .and(alarmHistory.alarmType.eq("0").not())
                         .and(alarmHistory.matchDateTime.after(ZonedDateTime.now().toLocalDateTime())))
                 .groupBy(alarmHistory.fixture.id, alarmHistory.homeTeam.id, alarmHistory.awayTeam.id, alarmHistory.matchDateTime)
                 .orderBy(alarmHistory.matchDateTime.asc())
@@ -95,6 +96,7 @@ public class AlarmHistoryRepositoryImpl implements AlarmHistoryRepositoryCustom 
                 .from(alarmHistory)
                 .join(alarmHistory.player, players).on(alarmHistory.player.id.eq(players.id))
                 .where(alarmHistory.member.id.eq(memberId)
+                        .and(alarmHistory.alarmType.eq("0").not())
                         .and(alarmHistory.fixture.id.eq(fixtureId)
                 ))
                 .fetch();

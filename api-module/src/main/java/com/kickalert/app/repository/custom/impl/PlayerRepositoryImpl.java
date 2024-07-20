@@ -44,13 +44,13 @@ public class PlayerRepositoryImpl implements PlayerRepositoryCustom {
                         countries.id.as("countryId"),
                         countries.countryName.as("country"),
                         countries.countryLogo,
-                        ExpressionUtils.as(JPAExpressions.select(fixtures.datetime)
+                        ExpressionUtils.as(JPAExpressions.select(fixtures.datetime.min())
                                 .from(fixtures)
                                 .where(fixtures.homeTeam.id.eq(teams.id)
                                         .or(fixtures.awayTeam.id.eq(teams.id)))
                                 .where(fixtures.datetime.after(LocalDateTime.now()))
                                 .orderBy(fixtures.datetime.asc())
-                                .limit(1),"nextMatchDateTimeOriginal"))
+                                ,"nextMatchDateTimeOriginal"))
                 ).from(teams)
                 .join(players).on(teams.id.eq(players.team.id))
                 .join(countries).on(players.country.id.eq(countries.id))

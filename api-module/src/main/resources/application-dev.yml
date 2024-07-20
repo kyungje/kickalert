@@ -7,10 +7,10 @@ spring:
     basename: messages/messages
     encoding: UTF-8
   datasource:
-   url: jdbc:mysql://34.64.92.3:3306/kickalert
+   url: jdbc:mariadb://kickalert-maria-db-dev.ctmiwumk82n8.ap-northeast-2.rds.amazonaws.com:3306/kickalert
    username: admin
-   password: P@ssword123!@#
-   driver-class-name: com.mysql.cj.jdbc.Driver
+   password: Skens135!kick
+   driver-class-name: org.mariadb.jdbc.Driver
 
 #  datasource:
 #    url: jdbc:mysql://libl-aurora-mysql8-db-dev.cluster-cshrhqgio6er.ap-northeast-2.rds.amazonaws.com/libl

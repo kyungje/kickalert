@@ -40,6 +40,10 @@ public class FixtureService {
 
         FixtureInDto.ResFixtureInfo fixtureInfo = fixtureRepository.findFixtureInfo(fixtureId);
 
+        if(!CommonUtils.isEmpty(fixtureInfo)) {
+            fixtureInfo.setMatchDateTime(CommonUtils.toUTCStringFromDateTime(fixtureInfo.getMatchDateTimeOriginal()));
+        }
+
         response.put("matchInfo", fixtureInfo);
 
         return response;

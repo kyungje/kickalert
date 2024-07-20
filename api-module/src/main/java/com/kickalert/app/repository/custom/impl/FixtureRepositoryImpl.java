@@ -37,16 +37,16 @@ public class FixtureRepositoryImpl implements FixtureRepositoryCustom {
         QTeams awayTeam = new QTeams("awayTeam");
 
         return queryFactory
-                .select(Projections.constructor(
+                .select(Projections.fields(
                         FixtureInDto.ResFixtureInfo.class,
                         fixtures.id.as("fixtureId"),
                         homeTeam.id.as("homeTeamId"),
                         awayTeam.id.as("awayTeamId"),
                         homeTeam.teamName.as("homeTeamName"),
                         awayTeam.teamName.as("awayTeamName"),
-                        fixtures.datetime.as("matchDateTime"),
-                        homeTeam.teamLogo.as("homeLogo"),
-                        awayTeam.teamLogo.as("awayLogo"),
+                        fixtures.datetime.as("matchDateTimeOriginal"),
+                        homeTeam.teamLogo.as("homeTeamLogo"),
+                        awayTeam.teamLogo.as("awayTeamLogo"),
                         leagues.id.as("leagueId"),
                         leagues.leagueName.as("leagueName")))
                 .from(fixtures)

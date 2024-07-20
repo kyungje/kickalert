@@ -3,10 +3,7 @@ package com.kickalert.app.service;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
+import com.google.firebase.messaging.*;
 import com.kickalert.app.dto.internal.AlarmInDto;
 import com.kickalert.app.repository.AlarmHistoryRepository;
 import com.kickalert.app.repository.FixtureRepository;
@@ -27,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -256,6 +255,90 @@ public class AlarmService {
             throw new RuntimeException(e);
         }
         response.put("firebaseMessage", firebaseMessage);
+
+        return response;
+    }
+
+    @Transactional
+    public Map<String, Object> multiAlarmTest() {
+        Map<String, Object> response = new HashMap<>();
+        BatchResponse batchResponse = null;
+
+        List<String> registrationTokens = Arrays.asList(
+                "dIp9KQu-ZkSvqUZlWFpGhD:APA91bGa_NZSCToNWC9MH_zGIIbxY5HrD9sljAMAnq2NfD1beRQ42u9TsY0jg7fhBaq4vrPP78kC6Eb07854L6HxysmlajFuGAN0pqKYDwRLMOj3kim_eNhSnCTLK4Vm9CNANesb2ecZ",
+                "dJe2IvtAQCC6s37OsMMHlQ:APA91bGk53MEbkcragJYY1GhwmDE5g975WZSWDnV8Dg8lR2oKMaqEpJOO7N5xnWYzmN2UZO1IzLu3czCRcK-9gv433V-H1T9gDvQuSWqPyx70xj2lbO4n9-iQh2KrNBP29tKMoAUQE5K"
+        );
+
+        try {
+            ClassPathResource classPathResource = new ClassPathResource("firebase/kick-alert-app-dev-firebase-adminsdk.json");
+            // Firebase 서비스 계정 JSON 파일 경로
+            InputStream serviceAccount = classPathResource.getInputStream();
+
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .build();
+
+            // FirebaseApp 초기화
+            FirebaseApp.initializeApp(options);
+
+            MulticastMessage message = MulticastMessage.builder()
+                    .setNotification(Notification.builder()
+                            .setTitle("알림 제목")
+                            .setBody("알림 내용")
+                            .build())
+                    .putData("nested_data", """
+                            {
+                                'matchInfo': {
+                                    "fixtureId": 1,
+                                    "homeTeamId": 1,
+                                    "awayTeamId": 2,
+                                    "homeTeamName": "team_name1",
+                                    "awayTeamName": "team_name2",
+                                    "matchDateTime": "2024-04-07T14:30:00Z",
+                                    "homeTeamLogo": "https://cdn.sportmonks.com/images/soccer/teams/16/496.png",
+                                    "awayTeamLogo": "https://cdn.sportmonks.com/images/soccer/teams/30/62.png",
+                                    "leagueId": 1,
+                                    "leagueName": "league_name1"
+                                },
+                                'playerList': [
+                                    {
+                                        "playerId": 33,
+                                        "playerName": "James Tavernier",
+                                        "playerPhotoUrl": "https://cdn.sportmonks.com/images/soccer/players/22/758.png",
+                                        "alarmType": "3",
+                                        "teamId": 5,
+                                    },
+                                    {
+                                        "playerId": 33,
+                                        "playerName": "James Tavernier",
+                                        "playerPhotoUrl": "https://cdn.sportmonks.com/images/soccer/players/22/758.png",
+                                        "alarmType": "3",
+                                        "teamId": 5,
+                                    },
+                                    {
+                                        "playerId": 33,
+                                        "playerName": "James Tavernier",
+                                        "playerPhotoUrl": "https://cdn.sportmonks.com/images/soccer/players/22/758.png",
+                                        "alarmType": "3",
+                                        "teamId": 5,
+                                    }
+                                ],
+                            }
+                            """)
+                    .addAllTokens(registrationTokens)
+                    .build();
+
+
+            // 메시지 전송
+            batchResponse = FirebaseMessaging.getInstance().sendEachForMulticast(message);
+            System.out.println(batchResponse.getSuccessCount() + " messages were sent successfully");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (FirebaseMessagingException e) {
+            throw new RuntimeException(e);
+        }
+        response.put("firebaseMessage", batchResponse);
 
         return response;
     }
