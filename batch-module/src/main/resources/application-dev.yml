@@ -1,0 +1,49 @@
+# api local config
+spring:
+  config:
+    activate:
+      on-profile: dev
+  messages:
+    basename: messages/messages
+    encoding: UTF-8
+  datasource:
+   url: jdbc:mariadb://kickalert-maria-db-dev.ctmiwumk82n8.ap-northeast-2.rds.amazonaws.com:3306/kickalert
+   username: admin
+   password: Skens135!kick
+   driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        default_batch_fetch_size: 1000
+    open-in-view: false
+  batch:
+    jdbc:
+      initialize-schema: never
+    job:
+      enabled: true
+#  datasource:
+#    url: jdbc:mysql://libl-aurora-mysql8-db-dev.cluster-cshrhqgio6er.ap-northeast-2.rds.amazonaws.com/libl
+#    username: admin
+#    password: Libl!23$0
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: 8080
+
+# logging 설정
+logging:
+  config: classpath:logback/logback-${spring.profiles.active}.xml
+
+football:
+  api-token: sUXiHoQ6isiD2yCqAnBKi7ueRHrHoTocLi9J8fOAd1bvdaEYE9DBPqGcK7FK
