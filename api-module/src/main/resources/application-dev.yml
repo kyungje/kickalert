@@ -12,8 +12,8 @@ spring:
    password: Skens135!kick
    driver-class-name: org.mariadb.jdbc.Driver
    hikari:
-    maximum-pool-size: 5
-    minimum-idle: 5
+    maximum-pool-size: 4
+    minimum-idle: 4
     idle-timeout: 30000
     max-lifetime: 1800000
     connection-timeout: 30000
