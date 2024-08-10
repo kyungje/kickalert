@@ -32,15 +32,15 @@ public class Fixtures extends BaseEntity {
     private Integer apiId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "home_team_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name = "home_team_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Teams homeTeam;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "away_team_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name = "away_team_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Teams awayTeam;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "league_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name = "league_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Leagues leagues;
 
     @Builder

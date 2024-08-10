@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/v1/player")
+@RequestMapping("/api/v1/player")
 public class PlayerController extends BaseController{
     private final PlayerService playerService;
 

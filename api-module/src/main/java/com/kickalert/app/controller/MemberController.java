@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/v1/member")
+@RequestMapping("/api/v1/member")
 public class MemberController extends BaseController {
     private final MemberService memberService;
     @PostMapping(value = "/initUser")

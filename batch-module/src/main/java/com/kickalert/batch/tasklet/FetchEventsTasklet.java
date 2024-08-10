@@ -1,13 +1,9 @@
 package com.kickalert.batch.tasklet;
 
+import com.kickalert.batch.dto.api.AlarmHistoryDto;
 import com.kickalert.batch.dto.api.BodyDto;
-import com.kickalert.batch.repository.FixtureRepository;
-import com.kickalert.batch.repository.LeagueRepository;
-import com.kickalert.batch.repository.TeamRepository;
+import com.kickalert.batch.repository.AlarmHistoryRepository;
 import com.kickalert.batch.tasklet.common.FootballRestClient;
-import com.kickalert.core.domain.Fixtures;
-import com.kickalert.core.domain.Leagues;
-import com.kickalert.core.domain.Teams;
 import com.kickalert.core.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Component
 public class FetchEventsTasklet implements Tasklet {
-    private final TeamRepository teamRepository;
-    private final LeagueRepository leagueRepository;
-    private final FixtureRepository fixtureRepository;
+    private final AlarmHistoryRepository alarmHistoryRepository;
 
     @Value("${football.api-token}")
     private String your_api_token;
@@ -35,23 +29,20 @@ public class FetchEventsTasklet implements Tasklet {
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
 
-        String[] strDates = {"2024-01-27"};
-        String fixtureLeagues = "501,502";
+        String fixtureLeagues = "8, 82, 301, 564, 384";
 
         //페이지별 데이터 저장
-        for (String date : strDates) {
-            int page = 1; //시작 페이지
-            BodyDto bodyDto = getBodyDto(fixtureLeagues, date , page);
+        int page = 1; //시작 페이지
+        BodyDto bodyDto = getBodyDto(fixtureLeagues, page);
 
-            if (!CommonUtils.isEmpty(bodyDto) && !CommonUtils.isEmpty(bodyDto.getData())) {
-                saveApiBodyInfo(bodyDto);
+        if (!CommonUtils.isEmpty(bodyDto) && !CommonUtils.isEmpty(bodyDto.getData())) {
+            processApiBodyInfo(bodyDto);
 
-                while ((Boolean) bodyDto.getPagination().get("has_more")) {
-                    bodyDto =  getBodyDto(fixtureLeagues, date, ++page);
+            while ((Boolean) bodyDto.getPagination().get("has_more")) {
+                bodyDto =  getBodyDto(fixtureLeagues, ++page);
 
-                    if (!CommonUtils.isEmpty(bodyDto) && !CommonUtils.isEmpty(bodyDto.getData())) {
-                        saveApiBodyInfo(bodyDto);
-                    }
+                if (!CommonUtils.isEmpty(bodyDto) && !CommonUtils.isEmpty(bodyDto.getData())) {
+                    processApiBodyInfo(bodyDto);
                 }
             }
         }
@@ -59,76 +50,102 @@ public class FetchEventsTasklet implements Tasklet {
         return RepeatStatus.FINISHED;
     }
 
-    private void saveApiBodyInfo(BodyDto bodyDto) {
+    private void processApiBodyInfo(BodyDto bodyDto) {
         bodyDto.getData().forEach(data -> {
-            Teams homeTeam = null;
-            Teams awayTeam = null;
-            String venueName = "";
-            Leagues league = null;
-
             log.info("data : {}", data);
-            //경기에 참여하는 홈팀과 어웨이팀 정보 가져오기
-            if (!CommonUtils.isEmpty(data.get("participants")) && data.get("participants") instanceof List) {
-                List<Map<String, Object>> participantList = (List<Map<String, Object>>) data.get("participants");
-                log.info("participantList : {}", participantList);
+            if (!CommonUtils.isEmpty(data.get("id")) && data.get("id") instanceof Integer apiFixtureId) {
 
-                for (Map<String, Object> participant : participantList) {
-                    if (!CommonUtils.isEmpty(participant.get("id")) && participant.get("id") instanceof Integer) {
-                        Integer teamApiId = (Integer) participant.get("id");
+                List<AlarmHistoryDto.AlarmInfo> alarmsWithinOneHourList = alarmHistoryRepository.findAlarmsWithinOneHour(apiFixtureId);
 
-                        if (!CommonUtils.isEmpty(participant.get("meta")) && participant.get("meta") instanceof Map) {
-                            Map<String, Object> metaInfo = (Map<String, Object>) participant.get("meta");
+                for(AlarmHistoryDto.AlarmInfo alarmInfo : alarmsWithinOneHourList){
+                    log.info("alarmHistory : {}", alarmInfo);
 
-                            String location = (String) metaInfo.get("location");
-
-                            if (location.equals("home")) {
-                                homeTeam = teamRepository.findByApiId(teamApiId);
-                            } else if (location.equals("away")) {
-                                awayTeam = teamRepository.findByApiId(teamApiId);
-                            }
-
-                        }
+                    //알람 신청 이력이 있으면 알람처리
+                    if(checkAlarmSetting(alarmInfo, data)){
+                        //선발 정보 알람처리(경기시작알람)
+                        sendAlarmMessage(alarmInfo);
                     }
+                    //알람처리 후 알람 이력 업데이트
                 }
+            } else {
+                return;
             }
-
-            //경기장 정보 가져오기
-            if (!CommonUtils.isEmpty(data.get("venue")) && data.get("venue") instanceof Map) {
-                Map<String, Object> venueInfo = (Map<String, Object>) data.get("venue");
-
-                venueName = (String) venueInfo.get("name");
-            }
-
-            //리그 정보 가져오기
-            if (!CommonUtils.isEmpty(data.get("league_id")) && data.get("league_id") instanceof Integer) {
-                Integer leagueId = (Integer) data.get("league_id");
-                league = leagueRepository.findByApiId(leagueId);
-            }
-
-            Fixtures fixture = Fixtures.builder()
-                    .venue(venueName)
-                    .homeTeam(homeTeam)
-                    .awayTeam(awayTeam)
-                    .leagues(league)
-                    .apiId((Integer) data.get("id"))
-                    .datetime(CommonUtils.convertStringToLocalDateTime((String) data.get("starting_at")))
-                    .build();
-
-            fixtureRepository.save(fixture);
         });
     }
 
+    /*
+    * alarmtype : 1 - 선발, 2 - 선발 + 후보 , 3 - 출전
+    * type_id : 1 - 전반 시작, 2 - 후반 시작, 3 - 추가시간, 11(lineups) - 선발, 12(lineups) - 후보, 18 - 교체
+    */
+    private boolean checkAlarmSetting(AlarmHistoryDto.AlarmInfo alarmInfo, Map<String, Object> apiData) {
+        String alarmType = alarmInfo.getAlarmType();
+        String playerSelection = "NON"; //선발 - STA, 후보 - SUB, 없음 - NON
 
-    private BodyDto getBodyDto(String fixtures, String date, int page) {
-        String qFixtures = "fixtures:" + fixtures;
+        if(!CommonUtils.isEmpty(apiData.get("lineups")) && apiData.get("lineups") instanceof List) {
+            List<Map<String, Object>> lineupList = (List<Map<String, Object>>) apiData.get("lineups");
+
+            for(Map<String, Object> lineup: lineupList){
+                if(!CommonUtils.isEmpty(lineup.get("type_id")) && lineup.get("type_id") instanceof Integer){
+                    Integer lineupType = (Integer) lineup.get("type_id");
+
+                    if(!CommonUtils.isEmpty(lineup.get("player_id")) && lineup.get("player_id") instanceof Integer){
+                        Integer playerId = (Integer) lineup.get("player_id");
+
+                        if(playerId.equals(alarmInfo.getPlayerApiId())){
+                            if(lineupType == 11){
+                                playerSelection = "STA";
+                            } else if(lineupType == 12){
+                                playerSelection = "SUB";
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+        //선발, 후보 모두 없으면 알람 안 울림
+        if("NON".equals(playerSelection)){
+            return false;
+        }
+
+        if(!CommonUtils.isEmpty(apiData.get("events")) && apiData.get("events") instanceof List) {
+            List<Map<String, Object>> eventList = (List<Map<String, Object>>) apiData.get("events");
+
+            for(Map<String, Object> event: eventList){
+                if(!CommonUtils.isEmpty(event.get("type_id")) && event.get("type_id") instanceof Integer){
+                    Integer eventType = (Integer) event.get("type_id");
+                    //알람이 선발이고 전반시작이고 실제 선발이면
+                    if("1".equals(alarmType) && eventType == 1 && "STA".equals(playerSelection)){
+                        return true;
+                    // 알람이 선발+후보이고 전반시작이고 실제 선발이거나 후보이면(여기까지 오면 항상 STA 나 SUB)
+                    } else if("2".equals(alarmType) && eventType == 1){
+                        return true;
+                    } else if("3".equals(alarmType) && eventType == 18){
+                        return true;
+                    }
+                }
+            }
+        }
+
+        //알람 설정 체크
+        return false;
+    }
+
+    private void sendAlarmMessage(AlarmHistoryDto.AlarmInfo alarmInfo) {
+        //알람 메시지 전송
+    }
+
+
+    private BodyDto getBodyDto(String fixtureLeagues, int page) {
+        String qFixtureLeagues = "fixtureLeagues:" + fixtureLeagues;
         return FootballRestClient.getRestClient().get()
                 .uri(uriBuilder ->
-                        uriBuilder.path("/football/livescores/latest/{date}")
+                        uriBuilder.path("/football/livescores/latest")
                                 .queryParam("api_token", your_api_token)
                                 .queryParam("page", page)
-                                .queryParam("include", "events")
-                                .queryParam("filters", qFixtures)
-                                .build(date))
+                                .queryParam("include", "events;lineups")
+                                .queryParam("filters", qFixtureLeagues)
+                                .build())
                 .retrieve()
                 .body(BodyDto.class);
     }

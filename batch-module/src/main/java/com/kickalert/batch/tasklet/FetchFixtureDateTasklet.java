@@ -32,7 +32,7 @@ public class FetchFixtureDateTasklet implements Tasklet {
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
 
         String[] strDates = {"2024-01-27"};
-        String fixtureLeagues = "501,502";
+        String fixtureLeagues = "8, 82, 301, 564, 384";
 
         //페이지별 데이터 저장
         for (String date : strDates) {

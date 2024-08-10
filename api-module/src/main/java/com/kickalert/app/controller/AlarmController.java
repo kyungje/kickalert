@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/v1/alarm")
+@RequestMapping("/api/v1/alarm")
 public class AlarmController extends BaseController {
     private final AlarmService alarmService;
 
@@ -45,7 +45,7 @@ public class AlarmController extends BaseController {
     }
 
     @PostMapping(value = "/alarmMultiTest")
-    public ResultExDto<Object> alarmMultiTest() {
-        return simpleResult(alarmService.multiAlarmTest());
+    public ResultExDto<Object> alarmMultiTest(@RequestBody AlarmExDto.ReqAlarmMultiTest reqAlarmMultiTest) {
+        return simpleResult(alarmService.multiAlarmTest(reqAlarmMultiTest.fcmTokens()));
     }
 }

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/v1/match")
+@RequestMapping("/api/v1/match")
 public class FixtureController extends BaseController{
     private final FixtureService fixtureService;
 

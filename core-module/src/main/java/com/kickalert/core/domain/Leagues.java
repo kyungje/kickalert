@@ -27,7 +27,7 @@ public class Leagues extends BaseEntity {
     private Integer apiId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "country_id", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name = "country_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Countries country;
 
     @Builder

@@ -39,21 +39,19 @@ public class FetchAllTeamTasklet implements Tasklet {
         teamRepository.truncateTable();
         playerRepository.truncateTable();
 
-        Integer[] countryIds = {11, 17, 32, 251, 462}; //Germany, France, spain, Italy, England
+        String fixtureLeagues = "8, 82, 301, 564, 384"; //Germany, France, spain, Italy, England
         //페이지별 데이터 저장
-        for(Integer countryId: countryIds){
-            int page = 1; //시작 페이지
-            BodyDto bodyDto = getBodyDto(countryId, page);
+        int page = 1; //시작 페이지
+        BodyDto bodyDto = getBodyDto(fixtureLeagues, page);
 
-            if(!CommonUtils.isEmpty(bodyDto) && !CommonUtils.isEmpty(bodyDto.getData())) {
-                saveApiBodyInfo(bodyDto);
+        if(!CommonUtils.isEmpty(bodyDto) && !CommonUtils.isEmpty(bodyDto.getData())) {
+            saveApiBodyInfo(bodyDto);
 
-                while((Boolean)bodyDto.getPagination().get("has_more")){
-                    bodyDto = getBodyDto(countryId, ++page);
+            while((Boolean)bodyDto.getPagination().get("has_more")){
+                bodyDto = getBodyDto(fixtureLeagues, ++page);
 
-                    if(!CommonUtils.isEmpty(bodyDto) && !CommonUtils.isEmpty(bodyDto.getData())) {
-                        saveApiBodyInfo(bodyDto);
-                    }
+                if(!CommonUtils.isEmpty(bodyDto) && !CommonUtils.isEmpty(bodyDto.getData())) {
+                    saveApiBodyInfo(bodyDto);
                 }
             }
         }
@@ -107,14 +105,16 @@ public class FetchAllTeamTasklet implements Tasklet {
     }
 
 
-    private BodyDto getBodyDto(Integer countryId, int page) {
+    private BodyDto getBodyDto(String leagues, int page) {
+        String fixtureLeagues = "fixtureLeagues:" + leagues;
         return  FootballRestClient.getRestClient().get()
                 .uri(uriBuilder ->
-                        uriBuilder.path("/football/teams/countries/{countryId}")
+                        uriBuilder.path("/football/teams")
                                 .queryParam("api_token", your_api_token)
                                 .queryParam("page", page)
                                 .queryParam("include", "players.player")
-                                .build(countryId))
+                                .queryParam("filters", fixtureLeagues)
+                                .build())
                 .retrieve()
                 .body(BodyDto.class);
     }

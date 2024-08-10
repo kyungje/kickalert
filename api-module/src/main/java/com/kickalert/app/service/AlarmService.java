@@ -260,27 +260,13 @@ public class AlarmService {
     }
 
     @Transactional
-    public Map<String, Object> multiAlarmTest() {
+    public Map<String, Object> multiAlarmTest(String[] fcmTokens) {
         Map<String, Object> response = new HashMap<>();
         BatchResponse batchResponse = null;
 
-        List<String> registrationTokens = Arrays.asList(
-                "dIp9KQu-ZkSvqUZlWFpGhD:APA91bGa_NZSCToNWC9MH_zGIIbxY5HrD9sljAMAnq2NfD1beRQ42u9TsY0jg7fhBaq4vrPP78kC6Eb07854L6HxysmlajFuGAN0pqKYDwRLMOj3kim_eNhSnCTLK4Vm9CNANesb2ecZ",
-                "dJe2IvtAQCC6s37OsMMHlQ:APA91bGk53MEbkcragJYY1GhwmDE5g975WZSWDnV8Dg8lR2oKMaqEpJOO7N5xnWYzmN2UZO1IzLu3czCRcK-9gv433V-H1T9gDvQuSWqPyx70xj2lbO4n9-iQh2KrNBP29tKMoAUQE5K"
-        );
+        List<String> registrationTokens = Arrays.asList(fcmTokens);
 
         try {
-            ClassPathResource classPathResource = new ClassPathResource("firebase/kick-alert-app-dev-firebase-adminsdk.json");
-            // Firebase 서비스 계정 JSON 파일 경로
-            InputStream serviceAccount = classPathResource.getInputStream();
-
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .build();
-
-            // FirebaseApp 초기화
-            FirebaseApp.initializeApp(options);
-
             MulticastMessage message = MulticastMessage.builder()
                     .setNotification(Notification.builder()
                             .setTitle("알림 제목")
@@ -328,13 +314,10 @@ public class AlarmService {
                     .addAllTokens(registrationTokens)
                     .build();
 
-
             // 메시지 전송
             batchResponse = FirebaseMessaging.getInstance().sendEachForMulticast(message);
             System.out.println(batchResponse.getSuccessCount() + " messages were sent successfully");
 
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (FirebaseMessagingException e) {
             throw new RuntimeException(e);
         }
